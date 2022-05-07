@@ -8,31 +8,29 @@ from torch.utils.data import DataLoader, random_split
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from dataset_vit import Radars
+from dataset import Radars
+import torchvision.models as models
 
 class LitModel(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.l1 = nn.Transformer(d_model=512, nhead=16, num_encoder_layers=12, num_decoder_layers=12)
+        self.l1 = nn.Conv2d(1, 1, 1)
 
-    def forward(self, x, y):
-        return self.l1(x, y)
+    def forward(self, x):
+        return self.l1(x)
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        x = torch.transpose(x, 0, 1)
-        y = torch.transpose(y, 0, 1)
-        y_hat = self(x, y)
-        loss = F.mse_loss(y_hat, y)
+        x = batch
+        print(x.shape)
+        y_hat = self(x)
+        loss = F.mse_loss(y_hat, x)
         self.log('train_loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, y = batch
-        x = torch.transpose(x, 0, 1)
-        y = torch.transpose(y, 0, 1)
-        y_hat = self(x, y)
-        loss = F.mse_loss(y_hat, y)
+        x = batch
+        y_hat = self(x)
+        loss = F.mse_loss(y_hat, x)
         self.log('val_loss', loss)
         return loss
 
@@ -41,7 +39,7 @@ class LitModel(pl.LightningModule):
 
 
 dataset = Radars(transform=transforms.Compose([transforms.ToTensor()]))
-train, val = random_split(dataset, [8000, 2000])
+train, val = random_split(dataset, [800, 200])
 
 #trainer = pl.Trainer(gpus=-1, accelerator="dp")
 trainer = pl.Trainer(gpus=[0,], max_epochs=1000)
