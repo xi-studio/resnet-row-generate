@@ -20,12 +20,16 @@ res = glob.glob("../data/AZ9010_256/*.png")
 
 def default_loader(path):
     img = io.imread(path)
+    y = np.round(img/16.0)
+    y = torch.from_numpy(y[0])
+    y = y.type(torch.LongTensor)
+
     img = img/255.0
     img = torch.from_numpy(img)
     img = torch.unsqueeze(img, axis=0)
     img = img.type(torch.FloatTensor)
-     
-    return img 
+
+    return img, y 
 
 
 class Radars(Dataset):
@@ -34,10 +38,10 @@ class Radars(Dataset):
         self.radar = res
 
     def __getitem__(self, index):
-        img = default_loader(self.radar[index])
+        img, y = default_loader(self.radar[index])
 
-        return img
+        return img, y
 
 
     def __len__(self):
-        return 1000
+        return 3000
