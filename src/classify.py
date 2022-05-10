@@ -46,15 +46,23 @@ class LitModel(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=4.5e-05, betas=(0.5, 0.9))
 
+    @torch.no_grad()
+    def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, **kwargs):
+        log = dict()
+        x, y, c = batch
+        log["img0"] = x[:,0] 
+        log["img1"] = x[:,1] 
+        return log
+
 
 dataset = Radars(transform=transforms.Compose([transforms.ToTensor()]))
-train, val = random_split(dataset, [8000, 000])
+train, val = random_split(dataset, [8000, 2000])
 
 #trainer = pl.Trainer(gpus=-1, accelerator="dp")
 trainer = pl.Trainer(gpus=[3,], max_epochs=1000)
 model = LitModel()
 
-train_loader = DataLoader(train, batch_size=8, num_workers=8)
-val_loader = DataLoader(val, batch_size=8, num_workers=8)
+train_loader = DataLoader(train, batch_size=16, num_workers=8)
+val_loader = DataLoader(val, batch_size=16, num_workers=8)
 
 trainer.fit(model, train_loader, val_loader)
