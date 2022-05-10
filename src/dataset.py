@@ -58,7 +58,7 @@ class Radars(Dataset):
         img0 = default_loader(radar_name % self.radar[index][0])
         img1 = default_loader(radar_name % self.radar[index][1])
         y, c = predict_y(radar_name % self.radar[index][2])
-        img  = torch.cat((img0, img1), axis=1)
+        img  = torch.cat((img0, img1), axis=0)
 
         return img, y, c
 

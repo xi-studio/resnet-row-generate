@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from dataset_v0 import Radars
-from model_resnet import LitModel
+from model_v0 import LitModel
 import torchvision.models as models
 
 
