@@ -17,24 +17,29 @@ class LitModel(pl.LightningModule):
         super().__init__()
         self.l1 = nn.Conv2d(1, 3, 1)
         self.l2 = models.resnet152()
-        self.l2.fc = nn.Linear(2048, 256 * 16)
+        self.l3 = nn.Sequential(
+                    nn.Linear(1000 + 256, 256 * 16),
+                    nn.ReLU()
+                  )
 
-    def forward(self, x):
+    def forward(self, x, c):
         x = self.l1(x)
         x = self.l2(x)
+        x = torch.cat((x, c), axis=1)
+        x = self.l3(x)
         return x
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_rec = self(x)
-        loss = F.cross_entropy(y_rec.reshape(-1, 16), y.reshape(-1))
+        x, y, c = batch
+        y_rec = self(x, c)
+        loss  = F.cross_entropy(y_rec.reshape(-1, 16), y.reshape(-1))
         self.log('train_loss', loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, y = batch
-        y_rec = self(x)
-        loss = F.cross_entropy(y_rec.reshape(-1, 16), y.reshape(-1))
+        x, y, c = batch
+        y_rec = self(x, c)
+        loss  = F.cross_entropy(y_rec.reshape(-1, 16), y.reshape(-1))
         self.log('val_loss', loss)
         return loss
 
@@ -43,13 +48,13 @@ class LitModel(pl.LightningModule):
 
 
 dataset = Radars(transform=transforms.Compose([transforms.ToTensor()]))
-train, val = random_split(dataset, [2000, 1000])
+train, val = random_split(dataset, [8000, 000])
 
 #trainer = pl.Trainer(gpus=-1, accelerator="dp")
 trainer = pl.Trainer(gpus=[3,], max_epochs=1000)
 model = LitModel()
 
-train_loader = DataLoader(train, batch_size=32, num_workers=8)
-val_loader = DataLoader(val, batch_size=32, num_workers=8)
+train_loader = DataLoader(train, batch_size=8, num_workers=8)
+val_loader = DataLoader(val, batch_size=8, num_workers=8)
 
 trainer.fit(model, train_loader, val_loader)

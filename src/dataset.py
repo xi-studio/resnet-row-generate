@@ -16,7 +16,7 @@ import h5py
 import csv
 import glob
 
-radar_name = "../data/AZ9010_256_h5/Z_RADR_I_Z9010_%s_P_DOR_SA_R_10_230_15.010_clean.png"
+radar_name = "../data/AZ9010_256/Z_RADR_I_Z9010_%s_P_DOR_SA_R_10_230_15.010_clean.png"
 
 rain_list = []
 
@@ -35,7 +35,7 @@ def default_loader(path):
     img = torch.unsqueeze(img, axis=0)
     img = img.type(torch.FloatTensor)
 
-    return img, y 
+    return img 
 
 def predict_y(path):
     img = io.imread(path)
@@ -45,6 +45,7 @@ def predict_y(path):
     y = y.type(torch.LongTensor)
     c = img_one_hot[c]
     c = torch.from_numpy(c)
+    c = c.type(torch.FloatTensor)
     
     return y, c 
 
@@ -63,4 +64,4 @@ class Radars(Dataset):
 
 
     def __len__(self):
-        return 3000
+        return 10000
